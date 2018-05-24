@@ -1,54 +1,16 @@
 import React, { Component } from 'react';
 import { ButtonToolbar, MenuItem, DropdownButton } from 'react-bootstrap';
 
-const Buttons = ({ seed, slow, fast, playBtn, pauseBtn, clear, gridSize }) => {
-  const buttonsClass = 'btn btn-default';
-  let handleSelect = (e) => {
-    gridSize(e);
-  };
-
-  return (
-    <div className='center'>
-      <ButtonToolbar>
-        <button className={buttonsClass} onClick={playBtn}>
-          Play
-        </button>
-        <button className={buttonsClass} onClick={pauseBtn}>
-          Pause
-        </button>
-        <button className={buttonsClass} onClick={clear}>
-          Clear
-        </button>
-        <button className={buttonsClass} onClick={slow}>
-          Slow
-        </button>
-        <button className={buttonsClass} onClick={fast}>
-          Fast
-        </button>
-        <button className={buttonsClass} onClick={seed}>
-          Seed
-        </button>
-        <DropdownButton title='gridSize' id='size-menu' onSelect={this.handleSelect}>
-          <MenuItem eventKey='1'> 20x10 </MenuItem>
-          <MenuItem eventKey='2'> 50x30 </MenuItem>
-          <MenuItem eventKey='3'> 70x50 </MenuItem>
-        </DropdownButton>
-      </ButtonToolbar>
-    </div>
-  );
-};
-
-
-
-const Box = ({ boxId, key, boxClass, row, col, selectBox }) => {
+const Box = ({ boxId, boxClass, row, col, selectBox }) => {
   //eslint-disable-next-line
-  let boxSelected = () => {
+  const boxSelected = () => {
     selectBox(row,col);
-  };
+  }
+
   return (
-    <div id={boxId} key={key} className={boxClass} onClick={this.boxSelected} />
+    <div id={boxId} className={boxClass} onClick={this.boxSelected} />
   );
-};
+}
 
 const Grid = ({ fullGrid, cols, rows, selectBox }) => {
   const width = (cols * 14) + 1;
@@ -87,6 +49,44 @@ const styles = {
   flexDirection: 'column'
 };
 
+const Buttons = ({ seed, slow, fast, playBtn, pauseBtn, clear, gridSize }) => {
+  const buttonsClass = 'btn btn-default';
+  //eslint-disable-next-line
+  let handleSelect = (event) => {
+    gridSize(event);
+  }
+
+  return (
+    <div className='center'>
+      <ButtonToolbar>
+        <button className={buttonsClass} onClick={playBtn}>
+          Play
+        </button>
+        <button className={buttonsClass} onClick={pauseBtn}>
+          Pause
+        </button>
+        <button className={buttonsClass} onClick={clear}>
+          Clear
+        </button>
+        <button className={buttonsClass} onClick={slow}>
+          Slow
+        </button>
+        <button className={buttonsClass} onClick={fast}>
+          Fast
+        </button>
+        <button className={buttonsClass} onClick={seed}>
+          Seed
+        </button>
+        <DropdownButton title='grid size' id='size-menu' onSelect={this.handleSelect}>
+          <MenuItem eventKey='1'> 20x10 </MenuItem>
+          <MenuItem eventKey='2'> 50x30 </MenuItem>
+          <MenuItem eventKey='3'> 70x50 </MenuItem>
+        </DropdownButton>
+      </ButtonToolbar>
+    </div>
+  );
+}
+
 class App extends Component {
   constructor() {
     super();
@@ -98,40 +98,37 @@ class App extends Component {
       gen: 0,
       fullGrid: Array(this.rows).fill().map(() =>
                 Array(this.cols).fill(false))
-    };
+    }
   }
-  selectBox = (row,col) => {
-    const { fullGrid } = this.state;
-
-    let gridCopy = arrayClonator(fullGrid);
-    gridCopy[row][col] = !gridCopy[row][col];
-
-    this.setState({
-      fullGrid: gridCopy,
-    })
-  };
-
   seed = () => {
-    const { fullGrid } = this.state;
-
-    let gridCopy = arrayClonator(fullGrid);
-
-    for(let i = 0; i < this.rows; i++) {
-      for(let j = 0; j < this.cols; j++) {
-        if(Math.floor(Math.random * 4) === 1) {
+    let gridCopy = arrayClonator(this.state.fullGrid);
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.cols; j++) {
+        if (Math.floor(Math.random() * 4) === 1) {
           gridCopy[i][j] = true;
         }
       }
     }
-
     this.setState({
-      fullGrid: gridCopy,
-    })
+      fullGrid: gridCopy
+    });
+  }
+
+  selectBox = (row, col) => {
+    let gridCopy = arrayClonator(this.state.gridFull);
+    gridCopy[row][col] = !gridCopy[row][col];
+    this.setState({
+      fullGrid: gridCopy
+    });
   }
 
   playBtn = () => {
     clearInterval(this.intervalId);
     this.intervalId = setInterval(this.play, this.speed)
+  }
+
+  pauseBtn = () => {
+    clearInterval(this.intervalId);
   }
 
   slow = () => {
@@ -145,24 +142,24 @@ class App extends Component {
   }
 
   clear = () => {
-    var grid = Array(this.rows).fill().map(() => Array(this.cols).fill(false));
+    const grid = Array(this.rows).fill().map(() => Array(this.cols).fill(false));
 
     this.setState({
       gen: 0,
       fullGrid: grid
-    })
+    });
   }
 
-  gridSize = (size) => {
+ gridSize = (size) => {
     switch (size) {
       case '1':
         this.cols = 20;
         this.rows = 10;
-        break;
+      break;
       case '2':
         this.cols = 50;
         this.rows = 30;
-        break;
+      break;
       default:
         this.cols = 70;
         this.rows = 50;
@@ -170,38 +167,34 @@ class App extends Component {
     this.clear();
   }
 
-  pauseBtn = () => {
-    this.clearInterval(this.intervalId);
-  }
-
   play = () => {
-    const { fullGrid, gen } = this.state;
 
-    let g = fullGrid;
-    let g2 = arrayClonator(fullGrid);
+  let g = this.state.fullGrid;
+  let g2 = arrayClonator(this.state.fullGrid);
 
-    for(let i = 0; i < this.rows; i++) {
-      for(let j = 0; j < this.cols; j++) {
-        let count = 0;
-        if(i > 0) if(g[i - 1][j]) count++;
-        if(i > 0 && j > 0) if(g[i - 1][j - 1]) count++;
-        if(i > 0 && j < this.cols - 1) if(g[i-1][j+1]) count++;
-        if(j < this.cols - 1) if(g[i+1][j]) count++;
-        if(j>0) if(g[i][j - 1]) count++;
-        if(i < this.rows - 1) if(g[i + 1][j]) count++;
-        if(i < this.rows -1 &&  j > 0) if(g[i + 1][j + i]) count++;
-        if(i < this.rows - 1 && this.cols - 1) if(g[i + 1][j + 1]) count++;
-        if(g[i][j] && (count < 2 || count > 3)) g2[i][j] = false;
-        if(!g[i][j] && count === 3) g2[i][j] = true;
-      }
+  for (let i = 0; i < this.rows; i++) {
+    for (let j = 0; j < this.cols; j++) {
+      let count = 0;
+      if (i > 0) if (g[i - 1][j]) count++;
+      if (i > 0 && j > 0) if (g[i - 1][j - 1]) count++;
+      if (i > 0 && j < this.cols - 1) if (g[i - 1][j + 1]) count++;
+      if (j < this.cols - 1) if (g[i][j + 1]) count++;
+      if (j > 0) if (g[i][j - 1]) count++;
+      if (i < this.rows - 1) if (g[i + 1][j]) count++;
+      if (i < this.rows - 1 && j > 0) if (g[i + 1][j - 1]) count++;
+      if (i < this.rows - 1 && this.cols - 1) if (g[i + 1][j + 1]) count++;
+      if (g[i][j] && (count < 2 || count > 3)) g2[i][j] = false;
+      if (!g[i][j] && count === 3) g2[i][j] = true;
     }
-    this.setState({
-      fullGrid: g2,
-      gen: gen + 1,
-    })
   }
+  this.setState({
+    fullGrid: g2,
+    gen: this.state.gen + 1
+  });
 
-  componendDidMount() {
+}
+
+  componentDidMount() {
     this.seed();
     this.playBtn();
   }
@@ -210,7 +203,6 @@ class App extends Component {
     const props = {
       fullGrid: this.state.fullGrid,
       gen: this.state.gen,
-      selectBox: this.selectBox
     };
 
     return (
@@ -229,7 +221,7 @@ class App extends Component {
           fullGrid={props.fullGrid}
           rows={this.rows}
           cols={this.cols}
-          selectBox={props.selectBox}
+          selectBox={this.selectBox}
         />
         <h2>Generations: {props.gen} </h2>
       </div>
